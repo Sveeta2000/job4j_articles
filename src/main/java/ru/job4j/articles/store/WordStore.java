@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class WordStore implements Store<Word>, AutoCloseable {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(WordStore.class.getSimpleName());
+    private final Logger logger = LoggerFactory.getLogger(WordStore.class.getSimpleName());
 
     private final Properties properties;
 
@@ -30,7 +30,7 @@ public class WordStore implements Store<Word>, AutoCloseable {
     }
 
     private void initConnection() {
-        LOGGER.info("Подключение к базе данных слов");
+        logger.info("Подключение к базе данных слов");
         try {
             connection = DriverManager.getConnection(
                     properties.getProperty("url"),
@@ -38,36 +38,36 @@ public class WordStore implements Store<Word>, AutoCloseable {
                     properties.getProperty("password")
             );
         } catch (SQLException e) {
-            LOGGER.error("Не удалось выполнить операцию: { }", e.getCause());
+            logger.error("Не удалось выполнить операцию: { }", e.getCause());
             throw new IllegalStateException();
         }
     }
 
     private void initScheme() {
-        LOGGER.info("Создание схемы таблицы слов");
+        logger.info("Создание схемы таблицы слов");
         try (var statement = connection.createStatement()) {
             var sql = Files.readString(Path.of("db/scripts", "dictionary.sql"));
             statement.execute(sql);
         } catch (Exception e) {
-            LOGGER.error("Не удалось выполнить операцию: { }", e.getCause());
+            logger.error("Не удалось выполнить операцию: { }", e.getCause());
             throw new IllegalStateException();
         }
     }
 
     private void initWords() {
-        LOGGER.info("Заполнение таблицы слов");
+        logger.info("Заполнение таблицы слов");
         try (var statement = connection.createStatement()) {
             var sql = Files.readString(Path.of("db/scripts", "words.sql"));
             statement.executeLargeUpdate(sql);
         } catch (Exception e) {
-            LOGGER.error("Не удалось выполнить операцию: { }", e.getCause());
+            logger.error("Не удалось выполнить операцию: { }", e.getCause());
             throw new IllegalStateException();
         }
     }
 
     @Override
     public Word save(Word model) {
-        LOGGER.info("Добавление слова в базу данных");
+        logger.info("Добавление слова в базу данных");
         var sql = "insert into dictionary(word) values(?) ON CONFLICT (word) DO NOTHING;";
         try (var statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, model.getValue());
@@ -77,7 +77,7 @@ public class WordStore implements Store<Word>, AutoCloseable {
                 model.setId(key.getInt(1));
             }
         } catch (Exception e) {
-            LOGGER.error("Не удалось выполнить операцию: { }", e.getCause());
+            logger.error("Не удалось выполнить операцию: { }", e.getCause());
             throw new IllegalStateException();
         }
         return model;
@@ -85,7 +85,7 @@ public class WordStore implements Store<Word>, AutoCloseable {
 
     @Override
     public List<Word> findAll() {
-        LOGGER.info("Загрузка всех слов");
+        logger.info("Загрузка всех слов");
         var sql = "select * from dictionary";
         var words = new ArrayList<Word>();
         try (var statement = connection.prepareStatement(sql)) {
@@ -97,7 +97,7 @@ public class WordStore implements Store<Word>, AutoCloseable {
                 ));
             }
         } catch (Exception e) {
-            LOGGER.error("Не удалось выполнить операцию: { }", e.getCause());
+            logger.error("Не удалось выполнить операцию: { }", e.getCause());
             throw new IllegalStateException();
         }
         return words;
