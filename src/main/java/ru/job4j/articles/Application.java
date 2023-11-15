@@ -18,7 +18,7 @@ public class Application {
 
     public static void main(String[] args) {
         var properties = loadProperties();
-        try ( var wordStore = new WordStore(properties);
+        try (var wordStore = new WordStore(properties);
               var articleStore = new ArticleStore(properties)) {
             var articleGenerator = new RandomArticleGenerator();
             var articleService = new SimpleArticleService(articleGenerator);
